@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora Speech</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Roboto', sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      
+      .calculator {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        max-width: 350px;
+        width: 100%;
+        padding: 20px;
+      }
+      
+      .display {
+        font-size: 2rem;
+        background-color: #f4f4f9;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: right;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+      }
+      
+      .button {
+        background-color: #e0e0e0;
+        border: none;
+        border-radius: 10px;
+        padding: 20px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease;
+      }
+      
+      .button:hover {
+        background-color: #d4d4d4;
+      }
+      
+      .button:active {
+        background-color: #c8c8c8;
+      }
+      
+      .button.operator {
+        background-color: #ff6f61;
+        color: white;
+      }
+      
+      .button.operator:hover {
+        background-color: #ff5c4f;
+      }
+      
+      .button.operator:active {
+        background-color: #ff3b2e;
+      }
+      
+      .button.reset {
+        background-color: #ffb700;
+        color: white;
+      }
+      
+      .button.reset:hover {
+        background-color: #ff5c4f;
+      }
+      
+      .button.reset:active {
+        background-color: #ff3b2e;
+      }
+      
+      .button.zero {
+        grid-column: span 2;
+      }
+      
+      .button.null {
+        background-color: #ffffff;
+        box-shadow: none;
+        border: none;
+        border-radius: none;
+      }
+      
+      p {
+        font-size: 16px;
+        margin-bottom: 1.5em;
+        line-height: 1.4em;
+      }
+      
+      .active {
+        background-color: #ff6f61;
+        color: #fff;
+        transition: background-color 0.3s ease;
+      }
+
+      .voice-recognition {
+        background-color: #ff6f61;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 20px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease;
+        margin-top: 20px;
+        grid-column: span 4;
+      }
+
+      .voice-recognition:hover {
+        background-color: #ff5c4f;
+      }
+      
+      .voice-recognition:active {
+          background-color: #ff3b2e;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="calculator">
+      <b><p>Calculadora Speech</p></b>
+      <div class="display">0</div>
+      <div class="buttons">
+        <button class="button reset">AC</button>
+        <button class="button">+/-</button>
+        <button class="button">%</button>
+        <button class="button operator">/</button>
+
+        <button class="button">7</button>
+        <button class="button">8</button>
+        <button class="button">9</button>
+        <button class="button operator">x</button>
+
+        <button class="button">4</button>
+        <button class="button">5</button>
+        <button class="button">6</button>
+        <button class="button operator">-</button>
+
+        <button class="button">1</button>
+        <button class="button">2</button>
+        <button class="button">3</button>
+        <button class="button operator">+</button>
+
+        <button class="button zero">0</button>
+        <button class="button">,</button>
+        <button class="button operator">=</button>
+
+        <button class="button voice-recognition" onclick="toggleRecognition()" aria-label="Ativar reconhecimento de voz">🎙️</button>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        let display = document.querySelector('.display');
+        let buttons = document.querySelectorAll('.button');
+        let operator = '';
+        let currentInput = '';
+        let previousInput = '';
+        let isResultDisplayed = false;
+      
+        buttons.forEach((button) => {
+          button.addEventListener('click', function () {
+            let value = this.innerText;
+      
+            if (value === 'AC') {
+              display.innerText = '0';
+              currentInput = '';
+              previousInput = '';
+              operator = '';
+              return;
+            }
+      
+            if (value === '+/-') {
+              currentInput = currentInput ? String(-parseFloat(currentInput)) : '';
+              display.innerText = currentInput || '0';
+              return;
+            }
+      
+            if (value === '%') {
+              currentInput = currentInput ? String(parseFloat(currentInput) / 100) : '';
+              display.innerText = currentInput || '0';
+              return;
+            }
+      
+            if (['/', 'x', '-', '+'].includes(value)) {
+              operator = value;
+              previousInput = currentInput;
+              currentInput = '';
+              isResultDisplayed = false;
+              return;
+            }
+      
+            if (value === '=') {
+              if (previousInput && currentInput && operator) {
+                let result;
+                let num1 = parseFloat(previousInput);
+                let num2 = parseFloat(currentInput);
+      
+                switch (operator) {
+                  case '/':
+                    result = num1 / num2;
+                    break;
+                  case 'x':
+                    result = num1 * num2;
+                    break;
+                  case '-':
+                    result = num1 - num2;
+                    break;
+                  case '+':
+                    result = num1 + num2;
+                    break;
+                }
+                display.innerText = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 10 }).format(result);
+                currentInput = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 10 }).format(result);
+                operator = '';
+                isResultDisplayed = true;
+              }
+              return;
+            }
+      
+            if (value === ',') {
+              if (!currentInput.includes(',')) {
+                currentInput += ',';
+              }
+              display.innerText = currentInput;
+              return;
+            }
+
+            if (isResultDisplayed) {
+              currentInput = '';
+              isResultDisplayed = false;
+            }            
+
+            currentInput += value;
+            display.innerText = currentInput;
+          })
+        })
+      })
+    </script>
+    <script>
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      const synth = window.speechSynthesis;
+      
+      recognition.lang = 'pt-BR';
+      recognition.continuous = true;
+      
+      let currentExpression = '';
+      let currentResult = null;
+      
+      let highlightQueue = [];
+      let isHighlighting = false;
+      
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript.trim();
+        const action = processSpeech(transcript);
+        if (action) {
+          addHighlight(action);
+          processCalculation(action);
+        }
+      }
+      
+      function addHighlight(action) {
+        highlightQueue.push(action);
+        if (!isHighlighting) {
+          processHighlightQueue();
+        }
+      }
+      
+      function processHighlightQueue() {
+        if (highlightQueue.length > 0) {
+          isHighlighting = true;
+          const action = highlightQueue.shift();
+          highlightButton(action, () => {
+            processHighlightQueue();
+          })
+        } else {
+          isHighlighting = false;
+        }
+      }
+      
+      function highlightButton(action, callback) {
+        const button = document.querySelector(`[aria-label="${action}"]`);
+        if (button) {
+          button.classList.add('active');
+          setTimeout(() => {
+            button.classList.remove('active');
+            if (callback) callback();
+          }, 2000);
+        } else if (callback) {
+          callback();
+        }
+      }
+      
+      function processCommand(expression) {
+        switch (expression) {
+          case 'AC':
+            resetCalculator()
+            return true;
+          case '+/-':
+            toggleSign()
+            return true;
+          case '%':
+            applyPercentage()
+            return true;
+          case '.':
+            if (!currentExpression.includes('.')) {
+                currentExpression += '.';
+                updateDisplay(currentExpression);
+            }
+            return true;
+          default:
+            return false;
+        }
+      }
+      
+      function resetCalculator() {
+        speakText('Calculadora resetada. Recarregando a página.');
+        setTimeout(() => {
+            window.location.href = window.location.href.split('?')[0] + '?reset=' + new Date().getTime();
+        }, 500);
+      }
+      
+      function toggleSign() {
+        let currentValue = parseFloat(document.querySelector('.display').innerText.replace(/,/g, ''))
+        if (!isNaN(currentValue)) {
+          currentValue *= -1;
+          displayResult(currentValue);
+        }
+      }
+      
+      function applyPercentage() {
+        let currentValue = parseFloat(document.querySelector('.display').innerText.replace(/,/g, ''))
+        if (!isNaN(currentValue)) {
+          currentValue *= 0.01;
+          displayResult(currentValue);
+        }
+      }
+      
+      function processSpeech(speech) {
+        const commandsMap = {
+          'mais': '+',
+          'menos': '-',
+          'vezes': 'x',
+          'dividido por': '/',
+          'porcento': '%',
+          'igual': '=',
+          'sinal': '+/-',
+          'resetar': 'AC',
+          'zero': '0',
+          'um': '1',
+          'dois': '2',
+          'três': '3',
+          'quatro': '4',
+          'cinco': '5',
+          'seis': '6',
+          'sete': '7',
+          'oito': '8',
+          'nove': '9',
+          'virgula': ','
+        };
+      
+        let processedExpression = speech.toLowerCase();
+      
+        for (const [key, value] of Object.entries(commandsMap)) {
+          const regex = new RegExp(`\\b${key}\\b`, 'g');
+          processedExpression = processedExpression.replace(regex, value);
+        }
+      
+        currentExpression += processedExpression
+      
+        if (isExpressionValid(currentExpression)) {
+          speakText(`Você disse: ${processedExpression}`);
+          displayExpression(currentExpression);
+          const result = evaluateExpression(currentExpression);
+          displayResult(result);
+          speakText(`O resultado é: ${result}`);
+        } else {
+          speakText('Comando não reconhecido. Tente novamente.');
+        }
+      }
+      
+      function isExpressionValid(expression) {
+        return /^[0-9+\-x/%\,\(\)AC\s\+\/\-]+$/.test(expression);
+      }
+      
+      function evaluateExpression(expression) {
+        const commandResult = processCommand(expression);
+        if (commandResult) {
+          return;
+        }
+        console.log('Expressão antes da substituição:', expression);
+        expression = expression.replace(/x/g, '*')
+        expression = expression.replace(/,/g, '.')
+        console.log('Expressão após a substituição:', expression);
+        try {
+          const result = eval(expression);
+          console.log('Resultado após eval:', result);
+          return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 10 }).format(result);
+        } catch (e) {
+          console.error('Erro ao avaliar expressão:', e);
+          return 0;
+        }
+      }
+      
+      function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        synth.speak(utterance);
+      }
+      
+      function displayExpression(expression) {
+        for (const char of expression) {
+          let button = Array.from(document.querySelectorAll('.button')).find((btn) => btn.innerText === char);
+          if (button) {
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 300);
+          }
+        }
+      }
+      
+      function displayResult(result) {
+        document.querySelector('.display').innerText = result;
+      }
+
+      let isRecognizing = false;
+
+      function toggleRecognition() {
+        const recognitionIndicator = document.querySelector('.voice-recognition');
+        if (isRecognizing) {
+            stopRecognition();
+            recognitionIndicator.innerText = '🎙️';
+        } else {
+            startRecognition();
+            recognitionIndicator.innerText = '🔴';
+        }
+      }
+      
+      document.addEventListener('keydown', function (event) {
+        if (event.code === 'Space') {
+          toggleRecognition();
+        }
+      })
+      
+      function startRecognition() {
+        recognition.start();
+        console.log('Reconhecimento de fala iniciado');
+        isRecognizing = true;
+      }
+      
+      function stopRecognition() {
+        recognition.stop();
+        console.log('Reconhecimento de fala parado');
+        isRecognizing = false;
+      }
+    </script>
+  </body>
+</html>
